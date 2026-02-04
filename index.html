@@ -1213,87 +1213,76 @@ ImagenURL: "https://i.ibb.co/wZjkBq0S/1.jpg"
          * @param {string} category - Categoría del catálogo (solo si page='catalog' o 'details').
          * @param {number} vehicleId - ID del vehículo (solo si page='details').
          */
-        function showPage(page, category = null, vehicleId = null) {
-            // Ocultar todas las páginas
-            pageMenu.style.display = 'none';
-            pageCatalog.style.display = 'none';
-            pageDetails.style.display = 'none';
-            document.body.classList.remove('menu-active-video');
-            fixedBtnBack.style.display = 'none';
-            
-            // Pausar el video para ahorrar recursos si no está en el menú
-            if (backgroundVideo) {
-                backgroundVideo.pause();
-            }
+       function showPage(page, category = null, vehicleId = null) {
+    // 💡 PASO 1: Forzar que la pantalla suba al inicio
+    window.scrollTo(0, 0);
 
-            let targetPage = page;
+    // Ocultar todas las páginas
+    pageMenu.style.display = 'none';
+    pageCatalog.style.display = 'none';
+    pageDetails.style.display = 'none';
+    
+    // Limpiar el contenedor de galería para que no queden fotos viejas
+    document.getElementById('gallery-container').innerHTML = '';
 
-            if (page === 'previous') {
-                // Eliminar la página actual del historial
-                history.pop();
-                if (history.length === 0) {
-                    // Si el historial está vacío, volver al menú por defecto
-                    history.push('menu');
-                }
-                
-                // La página anterior es la última en el historial
-                const previousEntry = history[history.length - 1];
-                
-                // Manejo de variables al regresar
-                if (previousEntry.startsWith('catalog:')) {
-                    category = previousEntry.split(':')[1];
-                    targetPage = 'catalog';
-                } else if (previousEntry.startsWith('details:')) {
-                    const parts = previousEntry.split(':')[1].split(':');
-                    category = parts[0];
-                    vehicleId = parseInt(parts[1]);
-                    targetPage = 'details';
-                } else {
-                    targetPage = 'menu';
-                }
+    document.body.classList.remove('menu-active-video');
+    fixedBtnBack.style.display = 'none';
+    
+    if (backgroundVideo) {
+        backgroundVideo.pause();
+    }
 
-            } else {
-                // Si no es "previous", añadir al historial la nueva página/estado
-                let historyEntry;
-                if (page === 'catalog') {
-                    historyEntry = `catalog:${category}`;
-                } else if (page === 'details') {
-                    // CRÍTICO: Usamos la categoría recibida como parámetro, no la global, para ser más robustos.
-                    const usedCategory = category || currentCategory; 
-                    historyEntry = `details:${usedCategory}:${vehicleId}`; 
-                    category = usedCategory; // Aseguramos que la variable local 'category' tenga el valor correcto para el rendering.
-                } else {
-                    historyEntry = 'menu';
-                }
+    let targetPage = page;
 
-                // Evitar duplicados si ya es la página actual
-                if (history[history.length - 1] !== historyEntry) {
-                    history.push(historyEntry);
-                }
-            }
-
-            // Eliminar entradas duplicadas si ocurre un error de navegación
-            if (history.length > 2 && history[history.length - 1] === history[history.length - 2]) {
-                history.pop();
-            }
-
-            // Mostrar la página objetivo
-            if (targetPage === 'menu') {
-                pageMenu.style.display = 'flex';
-                // Activamos el video de fondo solo en el menú
-                document.body.classList.add('menu-active-video');
-                // Al volver al menú, mostramos la animación inicial
-                animateMenu();
-            } else if (targetPage === 'catalog') {
-                pageCatalog.style.display = 'block';
-                renderCatalog(category);
-                fixedBtnBack.style.display = 'block';
-            } else if (targetPage === 'details') {
-                pageDetails.style.display = 'block';
-                renderDetails(category, vehicleId); // AHORA 'category' tiene el valor correcto.
-                fixedBtnBack.style.display = 'block';
-            }
+    if (page === 'previous') {
+        history.pop();
+        if (history.length === 0) history.push('menu');
+        
+        const previousEntry = history[history.length - 1];
+        
+        if (previousEntry.startsWith('catalog:')) {
+            category = previousEntry.split(':')[1];
+            targetPage = 'catalog';
+        } else if (previousEntry.startsWith('details:')) {
+            const parts = previousEntry.split(':')[1].split(':');
+            category = parts[0];
+            vehicleId = parseInt(parts[1]);
+            targetPage = 'details';
+        } else {
+            targetPage = 'menu';
         }
+    } else {
+        let historyEntry;
+        if (page === 'catalog') {
+            historyEntry = `catalog:${category}`;
+        } else if (page === 'details') {
+            const usedCategory = category || currentCategory; 
+            historyEntry = `details:${usedCategory}:${vehicleId}`; 
+            category = usedCategory;
+        } else {
+            historyEntry = 'menu';
+        }
+
+        if (history[history.length - 1] !== historyEntry) {
+            history.push(historyEntry);
+        }
+    }
+
+    // Mostrar la página objetivo
+    if (targetPage === 'menu') {
+        pageMenu.style.display = 'flex';
+        document.body.classList.add('menu-active-video');
+        animateMenu();
+    } else if (targetPage === 'catalog') {
+        pageCatalog.style.display = 'block';
+        renderCatalog(category);
+        fixedBtnBack.style.display = 'block';
+    } else if (targetPage === 'details') {
+        pageDetails.style.display = 'block';
+        renderDetails(category, vehicleId);
+        fixedBtnBack.style.display = 'block';
+    }
+}
         
         // --- FUNCIÓN renderCatalog (Permite la navegación a Detalles) ---
         
@@ -1469,6 +1458,7 @@ ${category === "Camiones" ? `
     </script>
     </body>
 </html>
+
 
 
 
